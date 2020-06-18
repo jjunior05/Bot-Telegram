@@ -1,0 +1,19 @@
+{
+    "name": "jose.junior/bot-telegram",
+    "authors": [
+        {
+            "name": "junior",
+            "email": "jjquelito@gmail.com"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-0": {
+            "ApiBot": "src/",
+            "Conn": "src/"
+        },
+        "psr-4": {
+            "joseJunior\\BotTelegram\\": "src/"
+        }
+    }
+}
