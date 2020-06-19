@@ -8,10 +8,10 @@ class Conn
     public static function conexao()
     {
         if (!isset(self::$conn)) {
-            $host = '';
-            $user = '';
-            $pass = '';
-            $db = '';
+            $host = 'localhost';
+            $user = 'postgres';
+            $pass = 'juehe05';
+            $db = 'bot-telegram';
         }
         try {
             self::$conn = new PDO("pgsql:host=$host;dbname=$db", $user, $pass);

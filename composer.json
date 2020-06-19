@@ -10,7 +10,8 @@
     "autoload": {
         "psr-0": {
             "ApiBot": "src/",
-            "Conn": "src/"
+            "Conn": "src/",
+            "Pessoa": "src/"
         },
         "psr-4": {
             "joseJunior\\BotTelegram\\": "src/"
