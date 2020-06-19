@@ -46,7 +46,7 @@ class ApiBot
     public function sendMessage(string $chatId, bool $image)
     {
         if ($image) {
-            $msg = "Mensagem Recebida!";
+            $msg = "Imagem Recebida!";
         } else
             $msg = 'Favor enviar somente imagens!';
 
