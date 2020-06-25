@@ -37,5 +37,5 @@ while ($count == 0) {
 }
 
 
-// $ApiBot->GerarUsuario();
-//$ApiBot->getUsuario();
+//$ApiBot->GerarUsuario();
+// $ApiBot->getUsuario();

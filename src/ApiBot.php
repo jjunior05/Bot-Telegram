@@ -14,12 +14,8 @@ include_once('Chat.php');
 class ApiBot
 {
     private $conexao;
-    private $chat;
     private $token = '1151280689:AAGtaz-N4zifvhyCSqwGA0fjjwJp94EdXho';
     private $folderPathUser = 'files/usuario';
-    private $id;
-    private $nome;
-    private $url;
 
     function __construct()
     {
@@ -114,6 +110,7 @@ class ApiBot
     {
         $usuario = array();
         $usuarioArray = array();
+        $usuarioInfo = array();
 
         $query = $this->conexao->query("select distinct a3_cod ,a3_nreduz, a3_emacorp, a3_est from sa3000 s where d_e_l_e_t_ = '' and a3_filial = '101' ");
         $return = $query->fetchAll();
@@ -132,6 +129,11 @@ class ApiBot
                 'uf' => $uf,
                 'token' => $token,
                 'idChat' => '',
+                'infos' => $usuarioInfo[] = array(
+                    "info1" => "Teste de info",
+                    "info2" => "Teste de info 2",
+                    "info3" => "Teste de info 3"
+                )
             );
         }
         $usuarioArray = $usuario;
@@ -150,7 +152,7 @@ class ApiBot
 
     public function getUsuario()
     {
-        $token = "2623773bbdc6bd87cb83fe797e2daa6e";
+        $token = "f00140c93426d9a7e63f9d2faadc8288";
         $array = array();
 
         $folderPath = $this->folderPathUser;
