@@ -3,16 +3,21 @@
 namespace joseJunior\BotTelegram;
 
 use Conn;
+use Chat;
+use Exception;
 use PDO;
+use Hash;
 
 include_once('Conn.php');
+include_once('Chat.php');
 
 class ApiBot
 {
     private $conexao;
+    private $chat;
     private $token = '1151280689:AAGtaz-N4zifvhyCSqwGA0fjjwJp94EdXho';
+    private $folderPathUser = 'files/usuario';
     private $id;
-    private $chatID;
     private $nome;
     private $url;
 
@@ -73,7 +78,7 @@ class ApiBot
     /**
      * Função para salvar o arquivo recebido no chat
      */
-    public function saveDocument(string $fileId, string $fileName)
+    public function saveDocument(string $fileId, string $fileName, string $updateId)
     {
         $url = 'https://api.telegram.org/bot' . $this->token . "/getfile?file_id=" . $fileId;
         $fileContent = file_get_contents($url);
@@ -82,13 +87,14 @@ class ApiBot
 
         if (strlen($fileName) > 0) {
 
-            //Cria a pasta 'image'
-            $folderPath = 'image';
+            //Cria a pasta com o nome do Usuário
+            $folderPath = 'files/' . $fileName;
             if (!file_exists($folderPath)) {
                 mkdir($folderPath);
             }
+            $file = @fopen($folderPath . DIRECTORY_SEPARATOR . $fileName . "_" . $updateId . "_.jpg", "w");
             //Carrega o arquivo criado.
-            $file = @fopen($folderPath . DIRECTORY_SEPARATOR . $fileName . "_" . $fileId . ".jpg", "w");
+
             //Salvando o conteúdo obtido pelo filepath dentro do arquivo criado no diretório.
             if ($file != false) {
                 fwrite($file, $this->getDocument($filePath));
@@ -104,26 +110,62 @@ class ApiBot
         $file = "https://api.telegram.org/file/bot" . $this->token . "/" . $filePath;
         return file_get_contents($file);
     }
-    public function salvarIdUsuario()
+    public function GerarUsuario()
     {
+        $usuario = array();
+        $usuarioArray = array();
 
-        $query = $this->conexao->prepare("INSERT INTO usuario (nome, id_chat) VALUES(?,?)");
-        $query->bindParam(1, $this->nome);
-        $query->bindParam(2, $this->id);
-        $query->execute();
-        $this->id = $this->conexao->lastInsertId();
-    }
+        $query = $this->conexao->query("select distinct a3_cod ,a3_nreduz, a3_emacorp, a3_est from sa3000 s where d_e_l_e_t_ = '' and a3_filial = '101' ");
+        $return = $query->fetchAll();
 
-    public function getUsuario($idChat)
-    {
+        for ($i = 0; $i < count($return); $i++) {
+            $cod = $return[$i]['a3_cod'];
+            $nome = $return[$i]['a3_nreduz'];
+            $email = $return[$i]['a3_emacorp'];
+            $uf = $return[$i]['a3_est'];
+            $token = $this->gerarToken();
 
-        $query = $this->conexao->query("select * from usuario where id_chat= '$idChat'");
-        $row = $query->fetch(PDO::FETCH_OBJ);
+            $usuario[] = array(
+                'cod' => $cod,
+                'nome' => $nome,
+                'email' => trim($email),
+                'uf' => $uf,
+                'token' => $token,
+                'idChat' => '',
+            );
+        }
+        $usuarioArray = $usuario;
+        $folderPath = $this->folderPathUser;
+        if (!file_exists($folderPath)) {
+            mkdir($folderPath);
+        }
 
-        if (empty($row)) {
-            return null;
+        $file = @fopen($folderPath . DIRECTORY_SEPARATOR . "usuario.json", "w");
+
+        if ($file != false) {
+            fwrite($file, json_encode($usuarioArray));
+            fclose($file);
         }
     }
+
+    public function getUsuario()
+    {
+        $token = "2623773bbdc6bd87cb83fe797e2daa6e";
+        $array = array();
+
+        $folderPath = $this->folderPathUser;
+        $file = @fopen($folderPath . DIRECTORY_SEPARATOR . "usuario.json", "r");
+
+        $fileJson = fread($file, filesize($folderPath . "\usuario.json"));
+
+        $array = json_decode($fileJson, true);
+
+        for ($i = 0; $i < count($array); $i++) {
+            if ($array[$i]['token'] === $token)
+                print_r($array[$i]);
+        }
+    }
+
     private function gerarToken(): string
     {
         return $token = md5(uniqid(rand(), true));
