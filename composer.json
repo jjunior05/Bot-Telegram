@@ -11,7 +11,8 @@
         "psr-0": {
             "ApiBot": "src/",
             "Conn": "src/",
-            "Chat": "src/"
+            "Chat": "src/",
+            "Main": "src/"
         },
         "psr-4": {
             "joseJunior\\BotTelegram\\": "src/"

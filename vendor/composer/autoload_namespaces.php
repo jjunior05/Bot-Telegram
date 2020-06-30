@@ -6,7 +6,8 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
-    'Pessoa' => array($baseDir . '/src'),
+    'Main' => array($baseDir . '/src'),
     'Conn' => array($baseDir . '/src'),
+    'Chat' => array($baseDir . '/src'),
     'ApiBot' => array($baseDir . '/src'),
 );

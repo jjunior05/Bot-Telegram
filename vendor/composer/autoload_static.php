@@ -21,9 +21,9 @@ class ComposerStaticInit65fe5d43e3b0a52b049656e2f371fa60
     );
 
     public static $prefixesPsr0 = array (
-        'P' => 
+        'M' => 
         array (
-            'Pessoa' => 
+            'Main' => 
             array (
                 0 => __DIR__ . '/../..' . '/src',
             ),
@@ -31,6 +31,10 @@ class ComposerStaticInit65fe5d43e3b0a52b049656e2f371fa60
         'C' => 
         array (
             'Conn' => 
+            array (
+                0 => __DIR__ . '/../..' . '/src',
+            ),
+            'Chat' => 
             array (
                 0 => __DIR__ . '/../..' . '/src',
             ),

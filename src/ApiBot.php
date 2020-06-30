@@ -3,13 +3,10 @@
 namespace joseJunior\BotTelegram;
 
 use Conn;
-use Chat;
 use Exception;
 use PDO;
-use Hash;
 
 include_once('Conn.php');
-include_once('Chat.php');
 
 class ApiBot
 {
@@ -112,22 +109,42 @@ class ApiBot
         $usuarioArray = array();
         $usuarioInfo = array();
 
-        $query = $this->conexao->query("select distinct a3_cod ,a3_nreduz, a3_emacorp, a3_est from sa3000 s where d_e_l_e_t_ = '' and a3_filial = '101' ");
+        $query = $this->conexao->query("select distinct 
+                                        a3_cod cod,
+                                        a3_filial filial,
+                                        a3_nreduz nome, 
+                                        a3_emacorp email, 
+                                        a3_est estado
+                                        from sa3000 s 
+                                        where 
+                                        d_e_l_e_t_ = '' 
+                                        and a3_filial = '101'
+                                        union all
+                                        select 
+                                        rd0_codigo cod,
+                                        rd0_filial filial,
+                                        rd0_nome nome,
+                                        rd0_email email,
+                                        '' estado
+                                        from rd0000 r 
+                                        where 
+                                        rd0_filial = ''
+                                        and d_e_l_e_t_ = ''");
         $return = $query->fetchAll();
 
         for ($i = 0; $i < count($return); $i++) {
-            $cod = $return[$i]['a3_cod'];
-            $nome = $return[$i]['a3_nreduz'];
-            $email = $return[$i]['a3_emacorp'];
-            $uf = $return[$i]['a3_est'];
+            $cod = $return[$i]['cod'];
+            $nome = $return[$i]['nome'];
+            $email = $return[$i]['email'];
+            $uf = $return[$i]['estado'];
             $token = $this->gerarToken();
 
             $usuario[] = array(
+                'token' => $token,
                 'cod' => $cod,
-                'nome' => $nome,
+                'nome' => trim($nome),
                 'email' => trim($email),
                 'uf' => $uf,
-                'token' => $token,
                 'idChat' => '',
                 'infos' => $usuarioInfo[] = array(
                     "info1" => "Teste de info",
@@ -136,8 +153,10 @@ class ApiBot
                 )
             );
         }
+
         $usuarioArray = $usuario;
         $folderPath = $this->folderPathUser;
+
         if (!file_exists($folderPath)) {
             mkdir($folderPath);
         }
@@ -148,6 +167,8 @@ class ApiBot
             fwrite($file, json_encode($usuarioArray));
             fclose($file);
         }
+
+        echo "Arquivo gerado!";
     }
 
     public function getUsuario()
@@ -158,7 +179,7 @@ class ApiBot
         $folderPath = $this->folderPathUser;
         $file = @fopen($folderPath . DIRECTORY_SEPARATOR . "usuario.json", "r");
 
-        $fileJson = fread($file, filesize($folderPath . "\usuario.json"));
+        $fileJson = fread($file, filesize($folderPath . "/usuario.json"));
 
         $array = json_decode($fileJson, true);
 
