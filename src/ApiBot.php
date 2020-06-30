@@ -88,7 +88,6 @@ class ApiBot
             $file = @fopen($folderPath . DIRECTORY_SEPARATOR . $fileName . "_" . $updateId . "_.jpg", "w");
             //Carrega o arquivo criado.
 
-            //Salvando o conteúdo obtido pelo filepath dentro do arquivo criado no diretório.
             if ($file != false) {
                 fwrite($file, $this->getDocument($filePath));
                 fclose($file);
@@ -171,9 +170,11 @@ class ApiBot
         echo "Arquivo gerado!";
     }
 
-    public function getUsuario()
+    public function getUsuario(string $token)
     {
-        $token = "f00140c93426d9a7e63f9d2faadc8288";
+        $retorno = 0;
+        // echo $token;
+        // $token = "f00140c93426d9a7e63f9d2faadc8288";
         $array = array();
 
         $folderPath = $this->folderPathUser;
@@ -184,9 +185,11 @@ class ApiBot
         $array = json_decode($fileJson, true);
 
         for ($i = 0; $i < count($array); $i++) {
-            if ($array[$i]['token'] === $token)
-                print_r($array[$i]);
+            if ($array[$i]['token'] === $token) {
+                $retorno = 1;
+            }
         }
+        return $retorno;
     }
 
     private function gerarToken(): string

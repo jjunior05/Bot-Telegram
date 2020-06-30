@@ -16,6 +16,8 @@ class Main
     {
 
         $count = 0;
+
+        $json = json_decode($this->apiBot->getUpdates(), true);
         $ultEstate = 0;
 
         while ($count == 0) {
@@ -24,7 +26,8 @@ class Main
 
             $jsonArray = json_decode($update, true); //Pegando o último elemento do json com os resultados.
 
-            if ($ultEstate != count($jsonArray["result"]) && $ultEstate !== 0) {
+            if ($ultEstate != count($jsonArray["result"])) {
+
                 $ultEstate = count($jsonArray["result"]);
 
                 $this->apiBot->sendMessage($jsonArray["result"][$ultEstate - 1]["message"]["chat"]["id"], true);
@@ -43,12 +46,13 @@ class Main
                     $this->apiBot->saveDocument($file_id, $nome, $updateId);
                 }
             }
-            print_r($update);
+            //print_r($update);
         }
     }
-    public function getUsuario()
+
+    public function getUsuario(string $token)
     {
-        $this->apiBot->getUsuario();
+        $this->apiBot->getUsuario($token);
     }
 
     public function gerarUsuario()
