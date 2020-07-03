@@ -5,8 +5,7 @@ require_once "vendor/autoload.php";
 use joseJunior\BotTelegram\Main;
 
 $main = new Main();
-
-$main->main();
-//$main->getUsuario('34724d7bf0451e29f28aeaa09120538bs');
-
-
+$date = new DateTime();
+//$main->main();
+$main->getUsuario('87fbdcd65bdc3fe265935214c8d4d420', '1271346018');
+// $main->gerarUsuario();

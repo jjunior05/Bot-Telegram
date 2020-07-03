@@ -44,7 +44,7 @@ class ApiBot
     public function sendMessage(string $chatId, bool $image)
     {
         if ($image) {
-            $msg = "Imagem Recebida!";
+            $msg = "Aguardando o token de identificação...!";
         } else
             $msg = 'Favor enviar somente imagens!';
 
@@ -106,7 +106,6 @@ class ApiBot
     {
         $usuario = array();
         $usuarioArray = array();
-        $usuarioInfo = array();
 
         $query = $this->conexao->query("select distinct 
                                         a3_cod cod,
@@ -145,11 +144,7 @@ class ApiBot
                 'email' => trim($email),
                 'uf' => $uf,
                 'idChat' => '',
-                'infos' => $usuarioInfo[] = array(
-                    "info1" => "Teste de info",
-                    "info2" => "Teste de info 2",
-                    "info3" => "Teste de info 3"
-                )
+                'lastUpdate' => ''
             );
         }
 
@@ -170,7 +165,7 @@ class ApiBot
         echo "Arquivo gerado!";
     }
 
-    public function getUsuario(string $token)
+    public function getUsuario(string $token, string $idChat)
     {
         $retorno = 0;
         // echo $token;
@@ -180,16 +175,35 @@ class ApiBot
         $folderPath = $this->folderPathUser;
         $file = @fopen($folderPath . DIRECTORY_SEPARATOR . "usuario.json", "r");
 
-        $fileJson = fread($file, filesize($folderPath . "/usuario.json"));
 
-        $array = json_decode($fileJson, true);
+        if ($file) {
+            $fileJson = fread($file, filesize($folderPath . "/usuario.json"));
 
-        for ($i = 0; $i < count($array); $i++) {
-            if ($array[$i]['token'] === $token) {
-                $retorno = 1;
+            $array = json_decode($fileJson, true);
+
+            for ($i = 0; $i < count($array); $i++) {
+                if ($array[$i]['token'] == $token) {
+                    if (empty($array[$i]['idChat'])) {
+                        $this->saveIdChat($token, $idChat, $array);
+                    }
+                    $retorno = 1;
+                }
             }
         }
         return $retorno;
+    }
+    private function saveIdChat(string $token, string $idChat, array $usuario)
+    {
+        $folderPath = $this->folderPathUser;
+        $file = fopen($folderPath . DIRECTORY_SEPARATOR . "usuario.json", 'w');
+
+        for ($i = 0; $i < count($usuario); $i++) {
+            if ($usuario[$i]['token'] == $token) {
+                $usuario[$i]['idChat'] = $idChat;
+            }
+        }
+        fwrite($file, json_encode($usuario));
+        fclose($file);
     }
 
     private function gerarToken(): string
