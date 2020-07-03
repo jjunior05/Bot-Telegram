@@ -20,8 +20,7 @@ class Main
         $json = json_decode($this->apiBot->getUpdates(), true);
         $ultEstate = 0;
 
-        while ($count == 0) {
-
+        while (true) {
             $update = $this->apiBot->getUpdates();
 
             $jsonArray = json_decode($update, true); //Pegando o último elemento do json com os resultados.
@@ -48,6 +47,7 @@ class Main
             // }
             //print_r($update);
         }
+        //print_r($update);
     }
 
 
