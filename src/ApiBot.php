@@ -11,29 +11,65 @@ include_once('Conn.php');
 class ApiBot
 {
     private $conexao;
-    private $token = '1151280689:AAGtaz-N4zifvhyCSqwGA0fjjwJp94EdXho';
-    private $folderPathUser = 'files/usuario';
+    const token = '1151280689:AAGtaz-N4zifvhyCSqwGA0fjjwJp94EdXho';
 
-    function __construct()
+    /** Folders */
+    const folderPathUser = 'files/usuario';
+    const folderUpdate = 'files/updates/history.txt';
+    const folderInfos = 'files/infos';
+
+    /** Folders */
+
+    // function __construct()
+    // {
+    //     // $this->conexao = Conn::conexao();
+    // }
+
+    // function __get($propriedade)
+    // {
+    //     return $this->propriedade;
+    // }
+
+    // function __set($propriedade, $valor)
+    // {
+    //     $this->propriedade = $valor;
+    // }
+
+    public function saveUpdate(array $update)
     {
-        $this->conexao = Conn::conexao();
+        $count = count($update['result']);
+        if ($count == 0)
+            $lastUpdate = 9999999999;
+        else
+            $lastUpdate = $update['result'][$count - 1]['update_id'];
+
+        if (!file_exists(self::folderUpdate)) {
+            mkdir(self::folderUpdate);
+        }
+        $file = @fopen(self::folderUpdate, "w");
+
+        if ($file != false) {
+            fwrite($file, strval($lastUpdate));
+            fclose($file);
+        }
     }
 
-    function __get($propriedade)
+    public function getLastUpdate(): string
     {
-        return $this->propriedade;
+        $arquivo = self::folderUpdate;
+
+        $file = @fopen($arquivo, "r");
+        if (!empty($file)) {
+            $update = fread($file, filesize($arquivo));
+        }
+        return $update;
     }
 
-    function __set($propriedade, $valor)
+    public function getUpdates(string $offSet): string
     {
-        $this->propriedade = $valor;
-    }
+        $url = 'https://api.telegram.org/bot' . self::token;
 
-    public function getUpdates(): string
-    {
-        $url = 'https://api.telegram.org/bot' . $this->token;
-
-        $update = file_get_contents($url . "/getupdates");
+        $update = file_get_contents($url . "/getupdates?offset=" . $offSet);
 
         return $update;
     }
@@ -41,17 +77,12 @@ class ApiBot
     /**
      * Função para responder
      */
-    public function sendMessage(string $chatId, bool $image)
+    public function sendMessage(string $chatId, string $text, string $comando)
     {
-        if ($image) {
-            $msg = "Aguardando o token de identificação...!";
-        } else
-            $msg = 'Favor enviar somente imagens!';
-
         $postData = http_build_query(
             array(
                 'chat_id' => $chatId,
-                'text' => $msg
+                'text' => $text
             )
         );
         $opts = array('http' =>
@@ -63,9 +94,9 @@ class ApiBot
 
         $context  = stream_context_create($opts);
 
-        $url = 'https://api.telegram.org/bot' . $this->token;
+        $url = 'https://api.telegram.org/bot' . self::token;
 
-        file_get_contents($url . "/sendMessage", false, $context);
+        file_get_contents($url . $comando, false, $context);
     }
 
     /**
@@ -73,7 +104,7 @@ class ApiBot
      */
     public function saveDocument(string $fileId, string $fileName, string $updateId)
     {
-        $url = 'https://api.telegram.org/bot' . $this->token . "/getfile?file_id=" . $fileId;
+        $url = 'https://api.telegram.org/bot' . self::token . "/getfile?file_id=" . $fileId;
         $fileContent = file_get_contents($url);
         $fileJson = json_decode($fileContent, true);
         $filePath = $fileJson["result"]["file_path"];
@@ -99,71 +130,71 @@ class ApiBot
      */
     private function getDocument($filePath)
     {
-        $file = "https://api.telegram.org/file/bot" . $this->token . "/" . $filePath;
+        $file = "https://api.telegram.org/file/bot" . self::token . "/" . $filePath;
         return file_get_contents($file);
     }
-    public function GerarUsuario()
-    {
-        $usuario = array();
-        $usuarioArray = array();
+    // public function GerarUsuario()
+    // {
+    //     $usuario = array();
+    //     $usuarioArray = array();
 
-        $query = $this->conexao->query("select distinct 
-                                        a3_cod cod,
-                                        a3_filial filial,
-                                        a3_nreduz nome, 
-                                        a3_emacorp email, 
-                                        a3_est estado
-                                        from sa3000 s 
-                                        where 
-                                        d_e_l_e_t_ = '' 
-                                        and a3_filial = '101'
-                                        union all
-                                        select 
-                                        rd0_codigo cod,
-                                        rd0_filial filial,
-                                        rd0_nome nome,
-                                        rd0_email email,
-                                        '' estado
-                                        from rd0000 r 
-                                        where 
-                                        rd0_filial = ''
-                                        and d_e_l_e_t_ = ''");
-        $return = $query->fetchAll();
+    //     $query = $this->conexao->query("select distinct 
+    //                                     a3_cod cod,
+    //                                     a3_filial filial,
+    //                                     a3_nreduz nome, 
+    //                                     a3_emacorp email, 
+    //                                     a3_est estado
+    //                                     from sa3000 s 
+    //                                     where 
+    //                                     d_e_l_e_t_ = '' 
+    //                                     and a3_filial = '101'
+    //                                     union all
+    //                                     select 
+    //                                     rd0_codigo cod,
+    //                                     rd0_filial filial,
+    //                                     rd0_nome nome,
+    //                                     rd0_email email,
+    //                                     '' estado
+    //                                     from rd0000 r 
+    //                                     where 
+    //                                     rd0_filial = ''
+    //                                     and d_e_l_e_t_ = ''");
+    //     $return = $query->fetchAll();
 
-        for ($i = 0; $i < count($return); $i++) {
-            $cod = $return[$i]['cod'];
-            $nome = $return[$i]['nome'];
-            $email = $return[$i]['email'];
-            $uf = $return[$i]['estado'];
-            $token = $this->gerarToken();
+    //     for ($i = 0; $i < count($return); $i++) {
+    //         $cod = $return[$i]['cod'];
+    //         $nome = $return[$i]['nome'];
+    //         $email = $return[$i]['email'];
+    //         $uf = $return[$i]['estado'];
+    //         $token = $this->gerarToken();
 
-            $usuario[] = array(
-                'token' => $token,
-                'cod' => $cod,
-                'nome' => trim($nome),
-                'email' => trim($email),
-                'uf' => $uf,
-                'idChat' => '',
-                'lastUpdate' => ''
-            );
-        }
+    //         $usuario[] = array(
+    //             'token' => $token,
+    //             'cod' => $cod,
+    //             'nome' => trim($nome),
+    //             'email' => trim($email),
+    //             'uf' => $uf,
+    //             'idChat' => '',
+    //             'lastUpdate' => ''
+    //         );
+    //     }
 
-        $usuarioArray = $usuario;
-        $folderPath = $this->folderPathUser;
+    //     $usuarioArray = $usuario;
+    //     $folderPath = self::folderPathUser;
 
-        if (!file_exists($folderPath)) {
-            mkdir($folderPath);
-        }
+    //     if (!file_exists($folderPath)) {
+    //         mkdir($folderPath);
+    //     }
 
-        $file = @fopen($folderPath . DIRECTORY_SEPARATOR . "usuario.json", "w");
+    //     $file = @fopen($folderPath . DIRECTORY_SEPARATOR . "usuario.json", "w");
 
-        if ($file != false) {
-            fwrite($file, json_encode($usuarioArray));
-            fclose($file);
-        }
+    //     if ($file != false) {
+    //         fwrite($file, json_encode($usuarioArray));
+    //         fclose($file);
+    //     }
 
-        echo "Arquivo gerado!";
-    }
+    //     echo "Arquivo gerado!";
+    // }
 
     public function getUsuario(string $token, string $idChat)
     {
@@ -172,12 +203,11 @@ class ApiBot
         // $token = "f00140c93426d9a7e63f9d2faadc8288";
         $array = array();
 
-        $folderPath = $this->folderPathUser;
-        $file = @fopen($folderPath . DIRECTORY_SEPARATOR . "usuario.json", "r");
+        $file = @fopen(self::folderPathUser . DIRECTORY_SEPARATOR . "usuario.json", "r");
 
 
         if ($file) {
-            $fileJson = fread($file, filesize($folderPath . "/usuario.json"));
+            $fileJson = fread($file, filesize(self::folderPathUser . "/usuario.json"));
 
             $array = json_decode($fileJson, true);
 
@@ -191,10 +221,11 @@ class ApiBot
             }
         }
         return $retorno;
+        print("RETORNO " . $retorno);
     }
     private function saveIdChat(string $token, string $idChat, array $usuario)
     {
-        $folderPath = $this->folderPathUser;
+        $folderPath = self::folderPathUser;
         $file = fopen($folderPath . DIRECTORY_SEPARATOR . "usuario.json", 'w');
 
         for ($i = 0; $i < count($usuario); $i++) {
@@ -206,8 +237,12 @@ class ApiBot
         fclose($file);
     }
 
-    private function gerarToken(): string
+    public function gerarToken(): string
     {
         return $token = md5(uniqid(rand(), true));
+    }
+
+    private function saveInfo(string $info)
+    {
     }
 }

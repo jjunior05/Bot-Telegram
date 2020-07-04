@@ -14,50 +14,60 @@ class Main
     }
     public function main()
     {
-
-        $count = 0;
-
-        $json = json_decode($this->apiBot->getUpdates(), true);
-        $ultEstate = 0;
-
         while (true) {
-            $update = $this->apiBot->getUpdates();
 
-            $jsonArray = json_decode($update, true); //Pegando o último elemento do json com os resultados.
+            print($this->apiBot->getLastUpdate() + 1);
+            $update = $this->apiBot->getUpdates($this->apiBot->getLastUpdate() + 1);
+            // ## Get Offset para pegar somente as mensagens não lidas ##
 
-            // if ($ultEstate != count($jsonArray["result"])) {
 
-            //     $ultEstate = count($jsonArray["result"]);
+            $jsonArray = json_decode($update, true);
+            $this->apiBot->saveUpdate($jsonArray);
 
-            //     $this->apiBot->sendMessage($jsonArray["result"][$ultEstate - 1]["message"]["chat"]["id"], true);
-            // }
 
-            // for ($i = 0; $i < count($jsonArray["result"]); $i++) {
+            if (!empty($jsonArray)) {
+                for ($i = 0; $i < count($jsonArray['result']); $i++) {
 
-            //     $image = false;
-            //     $nome = $jsonArray["result"][$i]["message"]["chat"]["first_name"];
-            //     $chatId = $jsonArray["result"][$i]["message"]["chat"]["id"];
-            //     $updateId = $jsonArray["result"][$i]["update_id"];
+                    $nome = $jsonArray["result"][$i]["message"]["chat"]["first_name"];
+                    $chatId = $jsonArray["result"][$i]["message"]["chat"]["id"];
+                    $message = $jsonArray["result"][$i]["message"]['text'];
+                    $updateId = $jsonArray["result"][$i]["update_id"];
 
-            //     if (array_key_exists("photo", $jsonArray["result"][$i]["message"])) {
-            //         $image = true;
-            //         $file_id = $jsonArray["result"][$i]["message"]["photo"][0]["file_id"];
-            //         $this->apiBot->saveDocument($file_id, $nome, $updateId);
-            //     }
-            // }
-            //print_r($update);
+                    switch ($message) {
+                        case '/start':
+                            $this->apiBot->sendMessage($chatId, "Selecionar o comando 'Enviar Token' ", "/sendMessage");
+                            break;
+                        case '/token':
+                            $this->apiBot->sendMessage($chatId, "Informar o Token para validação", "/sendMessage");
+                            break;
+                        case '/ajuda':
+                            $this->apiBot->sendMessage($chatId, "Informar o Token para validação", "/sendMessage");
+                            break;
+                        case '/photo':
+                            $this->apiBot->sendMessage($chatId, "Imagem Recebida", "/sendMessage");
+                            break;
+                        default:
+                            if ($this->apiBot->getUsuario($message, $chatId) == 1)
+                                $this->apiBot->sendMessage($chatId, "Validação OK", "/sendMessage");
+                            else
+                                $this->apiBot->sendMessage($chatId, "Token informado não confere", "/sendMessage");
+                            break;
+                    }
+
+                    // if (array_key_exists("photo", $jsonArray["result"][$i]["message"])) {
+                    //     $image = true;
+                    //     $file_id = $jsonArray["result"][$i]["message"]["photo"][0]["file_id"];
+                    //     $this->apiBot->saveDocument($file_id, $nome, $updateId);
+                    // }
+                }
+
+                $this->apiBot->saveUpdate($jsonArray);
+            }
         }
-        //print_r($update);
     }
 
-
-    public function getUsuario(string $token, string $chatId)
-    {
-        $this->apiBot->getUsuario($token, $chatId);
-    }
-
-    public function gerarUsuario()
-    {
-        $this->apiBot->gerarUsuario();
-    }
+    // public function gerarUsuario()
+    // {
+    //     $this->apiBot->gerarUsuario();
+    // }
 }
