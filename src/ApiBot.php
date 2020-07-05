@@ -125,7 +125,7 @@ class ApiBot
             $fileContent = file_get_contents($url);
             $fileJson = json_decode($fileContent, true);
             $filePath = $fileJson["result"]["file_path"];
-            $date = $this->formatDate($data);
+            $date = $this->formatDate($data)["data1"];
 
             if (strlen($fileName) > 0) {
 
@@ -149,23 +149,29 @@ class ApiBot
         }
     }
 
-    public function formatDate($data): string
+    public function formatDate($data): array
     {
         $date = new \DateTime();
         $date->setTimestamp($data);
-        $date = $date->format('d-m-Y');
+
+        $date1 = $date->format('d-m-Y');
+        $date2 = $date->format('d-m-Y H:m');
 
         $patterns = array();
         $patterns[0] = '/-/';
-        $patterns[1] = '/:/';
         $patterns[2] = '/\s\s+/';
 
         $replacements = array();
         $replacements[0] = '_';
         $replacements[1] = '_';
-        $replacements[2] = ' ';
 
-        return preg_replace($patterns, $replacements, $date);
+        $date1 = preg_replace($patterns, $replacements, $date1);
+        $date2 = preg_replace($patterns, $replacements, $date2);
+
+        return ([
+            "data1" => strval($date1),
+            "data2" => strval($date2)
+        ]);
     }
     /**
      * Função para obter o conteúdo do arquivo
@@ -291,10 +297,12 @@ class ApiBot
     public function salvarInfos(string $updateId, string $nome, string $data, string $msg)
     {
         try {
-            $date = $this->formatDate($data);
+            $date1 = $this->formatDate($data)["data1"];
+            $date2 = $this->formatDate($data)["data2"];
+
             $fileLido = "";
             //Cria a pasta com o nome do Usuário
-            $folderPath = self::folderInfos . DIRECTORY_SEPARATOR . $date;
+            $folderPath = self::folderInfos . DIRECTORY_SEPARATOR . $date1;
             $fileName = $folderPath . DIRECTORY_SEPARATOR . $nome  . "_.txt";
 
             if (!file_exists($folderPath)) {
@@ -308,7 +316,7 @@ class ApiBot
 
             $filew = @fopen($fileName, "w");
             //Carrega o arquivo criado.
-            fwrite($filew, $fileLido . "\n \n" . "udpate: $updateId usuário: $nome  Data: $date \n$msg.");
+            fwrite($filew, $fileLido . "\n \n" . "udpate: $updateId usuário: $nome  Data: $date2 \n$msg.");
             fclose($filew);
         } catch (\Throwable $th) {
             echo "Erro ao salvar histórico: " . $th;
