@@ -155,7 +155,7 @@ class ApiBot
         $date->setTimestamp($data);
 
         $date1 = $date->format('d-m-Y');
-        $date2 = $date->format('d-m-Y H:m');
+        $date2 = $date->format('d-m-Y H:i:s');
 
         $patterns = array();
         $patterns[0] = '/-/';
