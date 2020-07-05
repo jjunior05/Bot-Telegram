@@ -115,9 +115,9 @@ class ApiBot
         if (strlen($fileName) > 0) {
 
             //Cria a pasta com o nome do Usuário
-            $folderPath = 'files/' . $fileName;
+            $folderPath = 'files/fotos' . DIRECTORY_SEPARATOR . $fileName;
             if (!file_exists($folderPath)) {
-                mkdir($folderPath);
+                mkdir($folderPath, 0755, true);
             }
             $file = @fopen($folderPath . DIRECTORY_SEPARATOR . $fileName . '_' . $date . "_" . $updateId . "_.jpg", "w");
             //Carrega o arquivo criado.

@@ -31,7 +31,6 @@ class Main
                     $nome = $jsonArray["result"][$i]["message"]["chat"]["first_name"];
                     $chatId = $jsonArray["result"][$i]["message"]["chat"]["id"];
                     $updateId = $jsonArray["result"][$i]["update_id"];
-                    $file_id = $jsonArray["result"][$i]["message"]["photo"][count($jsonArray["result"][$i]["message"]["photo"]) - 1]["file_id"];
                     $data = $jsonArray["result"][$i]["message"]['date'];
 
                     // ## Necessário para verificar se é uma foto ou texto ##
@@ -56,6 +55,12 @@ class Main
                         }
                     } elseif (array_key_exists("photo", $jsonArray["result"][$i]["message"])) {
 
+                        $file_id = $jsonArray["result"][$i]["message"]["photo"][count($jsonArray["result"][$i]["message"]["photo"]) - 1]["file_id"];
+                        $this->apiBot->saveDocument($file_id, $nome, $updateId, $data);
+                        $this->apiBot->sendMessage($chatId, "Imagem recebida!", "/sendMessage");
+                    } elseif (array_key_exists("document", $jsonArray["result"][$i]["message"])) {
+
+                        $file_id = $jsonArray["result"][$i]["message"]["document"][0]["file_id"];
                         $this->apiBot->saveDocument($file_id, $nome, $updateId, $data);
                         $this->apiBot->sendMessage($chatId, "Imagem recebida!", "/sendMessage");
                     }
