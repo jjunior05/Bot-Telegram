@@ -11,16 +11,18 @@ include_once('Conn.php');
 
 class ApiBot
 {
+    /** Urls */
     private $conexao;
     const url = 'https://api.telegram.org/bot1151280689:AAGtaz-N4zifvhyCSqwGA0fjjwJp94EdXho';
     const urlFile = 'https://api.telegram.org/file/bot1151280689:AAGtaz-N4zifvhyCSqwGA0fjjwJp94EdXho';
 
     /** Folders */
-    const folderPathUser = 'files/usuario';
-    const folderUpdate = 'files/updates/history.txt';
     const folderInfos = 'files/infos';
+    const folderFotos = 'files/fotos';
+    const folderPathUser = 'files/usuario';
+    const folderHistorico = 'files/historico';
+    const folderUpdate = 'files/updates/history.txt';
 
-    /** Folders */
 
     // function __construct()
     // {
@@ -39,32 +41,40 @@ class ApiBot
 
     public function saveUpdate(array $update)
     {
-        $count = count($update['result']);
-        if ($count == 0)
-            $lastUpdate = 9999999999;
-        else
-            $lastUpdate = $update['result'][$count - 1]['update_id'];
+        try {
+            $count = count($update['result']);
+            if ($count == 0)
+                $lastUpdate = 9999999999;
+            else
+                $lastUpdate = $update['result'][$count - 1]['update_id'];
 
-        if (!file_exists(self::folderUpdate)) {
-            mkdir(self::folderUpdate);
-        }
-        $file = @fopen(self::folderUpdate, "w");
+            if (!file_exists(self::folderUpdate)) {
+                mkdir(self::folderUpdate);
+            }
+            $file = @fopen(self::folderUpdate, "w");
 
-        if ($file != false) {
-            fwrite($file, strval($lastUpdate));
-            fclose($file);
+            if ($file != false) {
+                fwrite($file, strval($lastUpdate));
+                fclose($file);
+            }
+        } catch (Exception $e) {
+            echo 'Erro ao salvar o update: ',  $e->getMessage(), "\n";
         }
     }
 
     public function getLastUpdate(): string
     {
-        $arquivo = self::folderUpdate;
+        try {
+            $arquivo = self::folderUpdate;
 
-        $file = @fopen($arquivo, "r");
-        if (!empty($file)) {
-            $update = fread($file, filesize($arquivo));
+            $file = @fopen($arquivo, "r");
+            if (!empty($file)) {
+                $update = fread($file, filesize($arquivo));
+            }
+            return $update;
+        } catch (Exception $e) {
+            echo 'Erro ao carregar o último update: ',  $e->getMessage(), "\n";
         }
-        return $update;
     }
 
     public function getUpdates(string $offSet): string
@@ -81,24 +91,28 @@ class ApiBot
      */
     public function sendMessage(string $chatId, string $text, string $comando)
     {
-        $postData = http_build_query(
+        try {
+            $postData = http_build_query(
+                array(
+                    'chat_id' => $chatId,
+                    'text' => $text
+                )
+            );
+            $opts = array('http' =>
             array(
-                'chat_id' => $chatId,
-                'text' => $text
-            )
-        );
-        $opts = array('http' =>
-        array(
-            'method'  => 'POST',
-            'header'  => 'Content-Type: application/x-www-form-urlencoded',
-            'content' => $postData
-        ));
+                'method'  => 'POST',
+                'header'  => 'Content-Type: application/x-www-form-urlencoded',
+                'content' => $postData
+            ));
 
-        $context  = stream_context_create($opts);
+            $context  = stream_context_create($opts);
 
-        $url = self::url;
+            $url = self::url;
 
-        file_get_contents($url . $comando, false, $context);
+            file_get_contents($url . $comando, false, $context);
+        } catch (Exception $e) {
+            echo 'Erro ao enviar o ducumento: ',  $e->getMessage(), "\n";
+        }
     }
 
     /**
@@ -106,26 +120,30 @@ class ApiBot
      */
     public function saveDocument(string $fileId, string $fileName, string $updateId, string $data)
     {
-        $url = self::url . "/getfile?file_id=" . $fileId;
-        $fileContent = file_get_contents($url);
-        $fileJson = json_decode($fileContent, true);
-        $filePath = $fileJson["result"]["file_path"];
-        $date = $this->formatDate($data);
+        try {
+            $url = self::url . "/getfile?file_id=" . $fileId;
+            $fileContent = file_get_contents($url);
+            $fileJson = json_decode($fileContent, true);
+            $filePath = $fileJson["result"]["file_path"];
+            $date = $this->formatDate($data);
 
-        if (strlen($fileName) > 0) {
+            if (strlen($fileName) > 0) {
 
-            //Cria a pasta com o nome do Usuário
-            $folderPath = 'files/fotos' . DIRECTORY_SEPARATOR . $fileName;
-            if (!file_exists($folderPath)) {
-                mkdir($folderPath, 0755, true);
+                //Cria a pasta com o nome do Usuário
+                $folderPath = self::folderFotos . DIRECTORY_SEPARATOR . $fileName;
+                if (!file_exists($folderPath)) {
+                    mkdir($folderPath, 0755, true);
+                }
+                $file = @fopen($folderPath . DIRECTORY_SEPARATOR . $fileName . '_' . $date . "_" . $updateId . "_.jpg", "w");
+                //Carrega o arquivo criado.
+
+                if ($file != false) {
+                    fwrite($file, $this->getDocument($filePath));
+                    fclose($file);
+                }
             }
-            $file = @fopen($folderPath . DIRECTORY_SEPARATOR . $fileName . '_' . $date . "_" . $updateId . "_.jpg", "w");
-            //Carrega o arquivo criado.
-
-            if ($file != false) {
-                fwrite($file, $this->getDocument($filePath));
-                fclose($file);
-            }
+        } catch (Exception $e) {
+            echo 'Erro ao salvar o ducumento: ',  $e->getMessage(), "\n";
         }
     }
 
@@ -220,44 +238,70 @@ class ApiBot
 
     public function getUsuario(string $token, string $idChat)
     {
-        $retorno = 0;
-        $array = array();
+        try {
+            $retorno = 0;
+            $array = array();
 
-        $file = @fopen(self::folderPathUser . DIRECTORY_SEPARATOR . "usuario.json", "r");
+            $file = @fopen(self::folderPathUser . DIRECTORY_SEPARATOR . "usuario.json", "r");
 
-        if ($file) {
-            $fileJson = fread($file, filesize(self::folderPathUser . "/usuario.json"));
+            if ($file) {
+                $fileJson = fread($file, filesize(self::folderPathUser . "/usuario.json"));
 
-            $array = json_decode($fileJson, true);
+                $array = json_decode($fileJson, true);
 
-            for ($i = 0; $i < count($array); $i++) {
-                if ($array[$i]['token'] == $token) {
-                    if (empty($array[$i]['idChat'])) {
-                        $this->saveIdChat($token, $idChat, $array);
+                for ($i = 0; $i < count($array); $i++) {
+                    if ($array[$i]['token'] == $token) {
+                        if (empty($array[$i]['idChat'])) {
+                            $this->saveIdChat($token, $idChat, $array);
+                        }
+                        $retorno = 1;
                     }
-                    $retorno = 1;
                 }
             }
+            return $retorno;
+        } catch (Exception $e) {
+            echo 'Erro ao obter usuário: ',  $e->getMessage(), "\n";
         }
-        return $retorno;
     }
 
     private function saveIdChat(string $token, string $idChat, array $usuario)
     {
-        $folderPath = self::folderPathUser;
-        $file = fopen($folderPath . DIRECTORY_SEPARATOR . "usuario.json", 'w');
+        try {
+            $file = fopen(self::folderPathUser . DIRECTORY_SEPARATOR . "usuario.json", 'w');
 
-        for ($i = 0; $i < count($usuario); $i++) {
-            if ($usuario[$i]['token'] == $token) {
-                $usuario[$i]['idChat'] = $idChat;
+            for ($i = 0; $i < count($usuario); $i++) {
+                if ($usuario[$i]['token'] == $token) {
+                    $usuario[$i]['idChat'] = $idChat;
+                }
             }
+            fwrite($file, json_encode($usuario));
+            fclose($file);
+        } catch (Exception $e) {
+            echo 'Erro ao salvar o ID:',  $e->getMessage(), "\n";
         }
-        fwrite($file, json_encode($usuario));
-        fclose($file);
     }
 
     public function gerarToken(): string
     {
         return $token = md5(uniqid(rand(), true));
+    }
+
+    public function salvarHistorico(string $updateId, string $nome, string $data)
+    {
+        try {
+            $date = $this->formatDate($data);
+
+            //Cria a pasta com o nome do Usuário
+            $folderPath = self::folderHistorico . DIRECTORY_SEPARATOR . $nome;
+            if (!file_exists($folderPath)) {
+                mkdir($folderPath, 0755, true);
+            }
+            $file = @fopen($folderPath . DIRECTORY_SEPARATOR . $nome . '_' . $date . "_" . $updateId . "_.txt", "w");
+            //Carrega o arquivo criado.
+
+
+        } catch (\Throwable $th) {
+            echo "Erro ao salvar histórico: " . $th;
+        }
     }
 }
