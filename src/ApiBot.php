@@ -20,7 +20,7 @@ class ApiBot
     const folderInfos = 'files/infos';
     const folderFotos = 'files/fotos';
     const folderPathUser = 'files/usuario';
-    const folderHistorico = 'files/historico';
+    const folderHistorico = 'files/infos';
     const folderUpdate = 'files/updates/history.txt';
 
 
@@ -130,11 +130,13 @@ class ApiBot
             if (strlen($fileName) > 0) {
 
                 //Cria a pasta com o nome do Usuário
-                $folderPath = self::folderFotos . DIRECTORY_SEPARATOR . $fileName;
+                $folderPath = self::folderFotos . DIRECTORY_SEPARATOR . $date . DIRECTORY_SEPARATOR . $fileName;
+                $fileNome = $folderPath  . DIRECTORY_SEPARATOR . $updateId . "_.jpg";
+
                 if (!file_exists($folderPath)) {
                     mkdir($folderPath, 0755, true);
                 }
-                $file = @fopen($folderPath . DIRECTORY_SEPARATOR . $fileName . '_' . $date . "_" . $updateId . "_.jpg", "w");
+                $file = @fopen($fileNome, "w");
                 //Carrega o arquivo criado.
 
                 if ($file != false) {
@@ -286,20 +288,28 @@ class ApiBot
         return $token = md5(uniqid(rand(), true));
     }
 
-    public function salvarHistorico(string $updateId, string $nome, string $data)
+    public function salvarInfos(string $updateId, string $nome, string $data, string $msg)
     {
         try {
             $date = $this->formatDate($data);
-
+            $fileLido = "";
             //Cria a pasta com o nome do Usuário
-            $folderPath = self::folderHistorico . DIRECTORY_SEPARATOR . $nome;
+            $folderPath = self::folderInfos . DIRECTORY_SEPARATOR . $date;
+            $fileName = $folderPath . DIRECTORY_SEPARATOR . $nome  . "_.txt";
+
             if (!file_exists($folderPath)) {
                 mkdir($folderPath, 0755, true);
             }
-            $file = @fopen($folderPath . DIRECTORY_SEPARATOR . $nome . '_' . $date . "_" . $updateId . "_.txt", "w");
+            $filer = @fopen($fileName, "r");
+
+            if (file_exists($fileName)) {
+                $fileLido = fread($filer, filesize($fileName));
+            }
+
+            $filew = @fopen($fileName, "w");
             //Carrega o arquivo criado.
-
-
+            fwrite($filew, $fileLido . "\n \n" . "udpate: $updateId usuário: $nome  Data: $date \n$msg.");
+            fclose($filew);
         } catch (\Throwable $th) {
             echo "Erro ao salvar histórico: " . $th;
         }

@@ -7,6 +7,7 @@ use joseJunior\BotTelegram\ApiBot;
 class Main
 {
     private $apiBot;
+    const session = array("chatID" => '', "validacao" => '');
 
     function __construct()
     {
@@ -47,10 +48,12 @@ class Main
                                 $this->apiBot->sendMessage($chatId, "Informar o Token para validação", "/sendMessage");
                                 break;
                             default:
-                                if ($this->apiBot->getUsuario($message, $chatId) == 1)
+                                if ($this->apiBot->getUsuario($message, $chatId) == 1) {
                                     $this->apiBot->sendMessage($chatId, "Validação OK", "/sendMessage");
-                                else
+                                } else {
                                     $this->apiBot->sendMessage($chatId, "Token informado não confere", "/sendMessage");
+                                    $this->apiBot->salvarInfos($updateId, $nome, $data, $message);
+                                }
                                 break;
                         }
                     } elseif (array_key_exists("photo", $jsonArray["result"][$i]["message"])) {
