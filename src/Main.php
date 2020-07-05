@@ -30,35 +30,35 @@ class Main
 
                     $nome = $jsonArray["result"][$i]["message"]["chat"]["first_name"];
                     $chatId = $jsonArray["result"][$i]["message"]["chat"]["id"];
-                    $message = $jsonArray["result"][$i]["message"]['text'];
                     $updateId = $jsonArray["result"][$i]["update_id"];
+                    $file_id = $jsonArray["result"][$i]["message"]["photo"][count($jsonArray["result"][$i]["message"]["photo"]) - 1]["file_id"];
+                    $data = $jsonArray["result"][$i]["message"]['date'];
 
-                    switch ($message) {
-                        case '/start':
-                            $this->apiBot->sendMessage($chatId, "Selecionar o comando 'Enviar Token' ", "/sendMessage");
-                            break;
-                        case '/token':
-                            $this->apiBot->sendMessage($chatId, "Informar o Token para validação", "/sendMessage");
-                            break;
-                        case '/ajuda':
-                            $this->apiBot->sendMessage($chatId, "Informar o Token para validação", "/sendMessage");
-                            break;
-                        case '/photo':
-                            $this->apiBot->sendMessage($chatId, "Imagem Recebida", "/sendMessage");
-                            break;
-                        default:
-                            if ($this->apiBot->getUsuario($message, $chatId) == 1)
-                                $this->apiBot->sendMessage($chatId, "Validação OK", "/sendMessage");
-                            else
-                                $this->apiBot->sendMessage($chatId, "Token informado não confere", "/sendMessage");
-                            break;
+                    // ## Necessário para verificar se é uma foto ou texto ##
+                    if (array_key_exists("text", $jsonArray["result"][$i]["message"])) {
+                        $message = $jsonArray["result"][$i]["message"]['text'];
+                        switch ($message) {
+                            case '/start':
+                                $this->apiBot->sendMessage($chatId, "Selecionar o comando 'Enviar Token' ", "/sendMessage");
+                                break;
+                            case '/token':
+                                $this->apiBot->sendMessage($chatId, "Informar o Token para validação", "/sendMessage");
+                                break;
+                            case '/ajuda':
+                                $this->apiBot->sendMessage($chatId, "Informar o Token para validação", "/sendMessage");
+                                break;
+                            default:
+                                if ($this->apiBot->getUsuario($message, $chatId) == 1)
+                                    $this->apiBot->sendMessage($chatId, "Validação OK", "/sendMessage");
+                                else
+                                    $this->apiBot->sendMessage($chatId, "Token informado não confere", "/sendMessage");
+                                break;
+                        }
+                    } elseif (array_key_exists("photo", $jsonArray["result"][$i]["message"])) {
+
+                        $this->apiBot->saveDocument($file_id, $nome, $updateId, $data);
+                        $this->apiBot->sendMessage($chatId, "Imagem recebida!", "/sendMessage");
                     }
-
-                    // if (array_key_exists("photo", $jsonArray["result"][$i]["message"])) {
-                    //     $image = true;
-                    //     $file_id = $jsonArray["result"][$i]["message"]["photo"][0]["file_id"];
-                    //     $this->apiBot->saveDocument($file_id, $nome, $updateId);
-                    // }
                 }
 
                 $this->apiBot->saveUpdate($jsonArray);

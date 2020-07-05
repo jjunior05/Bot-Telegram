@@ -3,6 +3,7 @@
 namespace joseJunior\BotTelegram;
 
 use Conn;
+use DateTime;
 use Exception;
 use PDO;
 
@@ -11,7 +12,8 @@ include_once('Conn.php');
 class ApiBot
 {
     private $conexao;
-    const token = '1151280689:AAGtaz-N4zifvhyCSqwGA0fjjwJp94EdXho';
+    const url = 'https://api.telegram.org/bot1151280689:AAGtaz-N4zifvhyCSqwGA0fjjwJp94EdXho';
+    const urlFile = 'https://api.telegram.org/file/bot1151280689:AAGtaz-N4zifvhyCSqwGA0fjjwJp94EdXho';
 
     /** Folders */
     const folderPathUser = 'files/usuario';
@@ -67,7 +69,7 @@ class ApiBot
 
     public function getUpdates(string $offSet): string
     {
-        $url = 'https://api.telegram.org/bot' . self::token;
+        $url = self::url;
 
         $update = file_get_contents($url . "/getupdates?offset=" . $offSet);
 
@@ -94,7 +96,7 @@ class ApiBot
 
         $context  = stream_context_create($opts);
 
-        $url = 'https://api.telegram.org/bot' . self::token;
+        $url = self::url;
 
         file_get_contents($url . $comando, false, $context);
     }
@@ -102,12 +104,13 @@ class ApiBot
     /**
      * Função para salvar o arquivo recebido no chat
      */
-    public function saveDocument(string $fileId, string $fileName, string $updateId)
+    public function saveDocument(string $fileId, string $fileName, string $updateId, string $data)
     {
-        $url = 'https://api.telegram.org/bot' . self::token . "/getfile?file_id=" . $fileId;
+        $url = self::url . "/getfile?file_id=" . $fileId;
         $fileContent = file_get_contents($url);
         $fileJson = json_decode($fileContent, true);
         $filePath = $fileJson["result"]["file_path"];
+        $date = $this->formatDate($data);
 
         if (strlen($fileName) > 0) {
 
@@ -116,7 +119,7 @@ class ApiBot
             if (!file_exists($folderPath)) {
                 mkdir($folderPath);
             }
-            $file = @fopen($folderPath . DIRECTORY_SEPARATOR . $fileName . "_" . $updateId . "_.jpg", "w");
+            $file = @fopen($folderPath . DIRECTORY_SEPARATOR . $fileName . '_' . $date . "_" . $updateId . "_.jpg", "w");
             //Carrega o arquivo criado.
 
             if ($file != false) {
@@ -125,12 +128,31 @@ class ApiBot
             }
         }
     }
+
+    public function formatDate($data): string
+    {
+        $date = new \DateTime();
+        $date->setTimestamp($data);
+        $date = $date->format('d-m-Y');
+
+        $patterns = array();
+        $patterns[0] = '/-/';
+        $patterns[1] = '/:/';
+        $patterns[2] = '/\s\s+/';
+
+        $replacements = array();
+        $replacements[0] = '_';
+        $replacements[1] = '_';
+        $replacements[2] = ' ';
+
+        return preg_replace($patterns, $replacements, $date);
+    }
     /**
      * Função para obter o conteúdo do arquivo
      */
     private function getDocument($filePath)
     {
-        $file = "https://api.telegram.org/file/bot" . self::token . "/" . $filePath;
+        $file = self::urlFile . "/" . $filePath;
         return file_get_contents($file);
     }
     // public function GerarUsuario()
@@ -199,12 +221,9 @@ class ApiBot
     public function getUsuario(string $token, string $idChat)
     {
         $retorno = 0;
-        // echo $token;
-        // $token = "f00140c93426d9a7e63f9d2faadc8288";
         $array = array();
 
         $file = @fopen(self::folderPathUser . DIRECTORY_SEPARATOR . "usuario.json", "r");
-
 
         if ($file) {
             $fileJson = fread($file, filesize(self::folderPathUser . "/usuario.json"));
@@ -221,8 +240,8 @@ class ApiBot
             }
         }
         return $retorno;
-        print("RETORNO " . $retorno);
     }
+
     private function saveIdChat(string $token, string $idChat, array $usuario)
     {
         $folderPath = self::folderPathUser;
@@ -240,9 +259,5 @@ class ApiBot
     public function gerarToken(): string
     {
         return $token = md5(uniqid(rand(), true));
-    }
-
-    private function saveInfo(string $info)
-    {
     }
 }
