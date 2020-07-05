@@ -149,6 +149,11 @@ class ApiBot
         }
     }
 
+    /**
+     * Função para formatar a data, passando um formato unix, retonando um array:
+     * data1 -> Somente data.
+     * data2 -> Data e hora.
+     */
     public function formatDate($data): array
     {
         $date = new \DateTime();

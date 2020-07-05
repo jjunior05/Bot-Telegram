@@ -51,7 +51,7 @@ class Main
                                 if ($this->apiBot->getUsuario($message, $chatId) == 1) {
                                     $this->apiBot->sendMessage($chatId, "Validação OK", "/sendMessage");
                                 } else {
-                                    $this->apiBot->sendMessage($chatId, "Token informado não confere", "/sendMessage");
+                                    $this->apiBot->sendMessage($chatId, "Informação recebida", "/sendMessage");
                                     $this->apiBot->salvarInfos($updateId, $nome, $data, $message);
                                 }
                                 break;
@@ -61,12 +61,13 @@ class Main
                         $file_id = $jsonArray["result"][$i]["message"]["photo"][count($jsonArray["result"][$i]["message"]["photo"]) - 1]["file_id"];
                         $this->apiBot->saveDocument($file_id, $nome, $updateId, $data);
                         $this->apiBot->sendMessage($chatId, "Imagem recebida!", "/sendMessage");
-                    } elseif (array_key_exists("document", $jsonArray["result"][$i]["message"])) {
-
-                        $file_id = $jsonArray["result"][$i]["message"]["document"][0]["file_id"];
-                        $this->apiBot->saveDocument($file_id, $nome, $updateId, $data);
-                        $this->apiBot->sendMessage($chatId, "Imagem recebida!", "/sendMessage");
                     }
+                    // elseif (array_key_exists("document", $jsonArray["result"][$i]["message"])) {
+
+                    //     $file_id = $jsonArray["result"][$i]["message"]["document"][0]["file_id"];
+                    //     $this->apiBot->saveDocument($file_id, $nome, $updateId, $data);
+                    //     $this->apiBot->sendMessage($chatId, "Imagem recebida!", "/sendMessage");
+                    // }
                 }
 
                 $this->apiBot->saveUpdate($jsonArray);
