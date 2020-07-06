@@ -20,7 +20,6 @@ class ApiBot
     const folderInfos = 'files/infos';
     const folderFotos = 'files/fotos';
     const folderPathUser = 'files/usuario';
-    const folderHistorico = 'files/infos';
     const folderUpdate = 'files/updates/history.txt';
 
 
@@ -44,7 +43,7 @@ class ApiBot
         try {
             $count = count($update['result']);
             if ($count == 0)
-                $lastUpdate = 9999999999;
+                $lastUpdate = 99;
             else
                 $lastUpdate = $update['result'][$count - 1]['update_id'];
 

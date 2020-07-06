@@ -17,8 +17,8 @@ class Main
     {
         while (true) {
 
-            print($this->apiBot->getLastUpdate() + 1);
-            $update = $this->apiBot->getUpdates($this->apiBot->getLastUpdate() + 1);
+            print($this->apiBot->getLastUpdate() + (1));
+            $update = $this->apiBot->getUpdates($this->apiBot->getLastUpdate() + (1));
             // ## Get Offset para pegar somente as mensagens não lidas ##
 
 
