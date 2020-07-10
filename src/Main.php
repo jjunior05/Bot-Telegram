@@ -23,13 +23,22 @@ class Main
             $jsonArray = json_decode($update, true);
             if (!empty($jsonArray)) {
                 for ($i = 0; $i < count($jsonArray['result']); $i++) {
-                    $this->apiBot->saveUpdate($jsonArray['result'][$i]);
-                    $this->processMessage($jsonArray['result'][$i]);
+                    $message = $jsonArray['result'][$i]['message'];
+                    $chatId = $jsonArray['result'][$i]["message"]["chat"]["id"];
+
+                    if (array_key_exists("text", $message)) {
+                        if ($this->apiBot->getUsuario($message['text'], $chatId) === 1) {
+                            $this->processMessage($jsonArray['result'][$i]);
+                        } else {
+                            $this->apiBot->saveUpdate($jsonArray['result'][$i]);
+                            $this->apiBot->sendMessage($chatId, "Informar o Token para validação", "/sendMessage");
+                        }
+                    }
                 }
             }
         }
     }
-    
+
     function processMessage($result)
     {
 
@@ -45,25 +54,26 @@ class Main
                 case '/paciente':
                     $this->apiBot->sendMessage($chatId, "Selecionar o comando 'Enviar Token' ", "/sendMessage");
                     break;
-                case '/hospital':
-                    $this->apiBot->sendMessage($chatId, "Informar o Token para validação", "/sendMessage");
-                    break;
                 default:
-                    if ($this->apiBot->getUsuario($message, $chatId) == 1) {
-                        $this->apiBot->sendMessage($chatId, "Validação OK", "/sendMessage");
-                    } else {
-                        $this->apiBot->sendMessage($chatId, "Informação recebida", "/sendMessage");
-                        $this->apiBot->salvarInfos($updateId, $nome, $data, $message);
-                    }
+                    $this->apiBot->sendMessage($chatId, "Informação recebida, " . $nome, "/sendMessage");
+                    $this->apiBot->salvarInfos($updateId, $nome, $data, $message);
+
                     break;
             }
-        } elseif (array_key_exists("photo", $result["message"])) {
-
-            $file_id = $result["message"]["photo"][count($result["message"]["photo"]) - 1]["file_id"];
-            $this->apiBot->saveDocument($file_id, $nome, $updateId, $data);
-            $this->apiBot->sendMessage($chatId, "Imagem recebida!", "/sendMessage");
         }
         $this->apiBot->saveUpdate($result);
+    }
+    function processPhoto($result)
+    {
+
+        $nome = $result["message"]["chat"]["first_name"];
+        $chatId = $result["message"]["chat"]["id"];
+        $updateId = $result["update_id"];
+        $data = $result["message"]['date'];
+
+        $file_id = $result["message"]["photo"][count($result["message"]["photo"]) - 1]["file_id"];
+        $this->apiBot->saveDocument($file_id, $nome, $updateId, $data);
+        $this->apiBot->sendMessage($chatId, "Imagem recebida!", "/sendMessage");
     }
 
     // public function gerarUsuario()

@@ -264,10 +264,11 @@ class ApiBot
                 $array = json_decode($fileJson, true);
 
                 for ($i = 0; $i < count($array); $i++) {
+                    if ($array[$i]['idChat'] === $idChat) {
+                        $retorno = 1;
+                    } else
                     if ($array[$i]['token'] == $token) {
-                        if (empty($array[$i]['idChat'])) {
-                            $this->saveIdChat($token, $idChat, $array);
-                        }
+                        $this->saveIdChat($token, $idChat, $array);
                         $retorno = 1;
                     }
                 }
