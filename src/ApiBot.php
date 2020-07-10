@@ -23,10 +23,10 @@ class ApiBot
     const folderUpdate = 'files/updates/history.txt';
 
 
-    // function __construct()
-    // {
-    //     // $this->conexao = Conn::conexao();
-    // }
+    function __construct()
+    {
+        $this->conexao = Conn::conexao();
+    }
 
     // function __get($propriedade)
     // {
@@ -41,11 +41,11 @@ class ApiBot
     public function saveUpdate(array $update)
     {
         try {
-            $count = count($update['result']);
+            $count = count($update);
             if ($count == 0)
                 $lastUpdate = 99;
             else
-                $lastUpdate = $update['result'][$count - 1]['update_id'];
+                $lastUpdate = $update['update_id'];
 
             if (!file_exists(self::folderUpdate)) {
                 mkdir(self::folderUpdate);
@@ -64,6 +64,7 @@ class ApiBot
     public function getLastUpdate(): string
     {
         try {
+            $update = 99;
             $arquivo = self::folderUpdate;
 
             $file = @fopen($arquivo, "r");
@@ -129,7 +130,7 @@ class ApiBot
             if (strlen($fileName) > 0) {
 
                 //Cria a pasta com o nome do Usuário
-                $folderPath = self::folderFotos . DIRECTORY_SEPARATOR . $date . DIRECTORY_SEPARATOR . $fileName;
+                $folderPath = self::folderFotos . DIRECTORY_SEPARATOR . $fileName . DIRECTORY_SEPARATOR . $date . "h";
                 $fileNome = $folderPath  . DIRECTORY_SEPARATOR . $updateId . "_.jpg";
 
                 if (!file_exists($folderPath)) {
@@ -158,7 +159,7 @@ class ApiBot
         $date = new \DateTime();
         $date->setTimestamp($data);
 
-        $date1 = $date->format('d-m-Y');
+        $date1 = $date->format('d-m-Y H');
         $date2 = $date->format('d-m-Y H:i:s');
 
         $patterns = array();
@@ -168,6 +169,7 @@ class ApiBot
         $replacements = array();
         $replacements[0] = '_';
         $replacements[1] = '_';
+        $replacements[2] = '_';
 
         $date1 = preg_replace($patterns, $replacements, $date1);
         $date2 = preg_replace($patterns, $replacements, $date2);
@@ -185,68 +187,68 @@ class ApiBot
         $file = self::urlFile . "/" . $filePath;
         return file_get_contents($file);
     }
-    // public function GerarUsuario()
-    // {
-    //     $usuario = array();
-    //     $usuarioArray = array();
+    public function GerarUsuario()
+    {
+        $usuario = array();
+        $usuarioArray = array();
 
-    //     $query = $this->conexao->query("select distinct 
-    //                                     a3_cod cod,
-    //                                     a3_filial filial,
-    //                                     a3_nreduz nome, 
-    //                                     a3_emacorp email, 
-    //                                     a3_est estado
-    //                                     from sa3000 s 
-    //                                     where 
-    //                                     d_e_l_e_t_ = '' 
-    //                                     and a3_filial = '101'
-    //                                     union all
-    //                                     select 
-    //                                     rd0_codigo cod,
-    //                                     rd0_filial filial,
-    //                                     rd0_nome nome,
-    //                                     rd0_email email,
-    //                                     '' estado
-    //                                     from rd0000 r 
-    //                                     where 
-    //                                     rd0_filial = ''
-    //                                     and d_e_l_e_t_ = ''");
-    //     $return = $query->fetchAll();
+        $query = $this->conexao->query("select distinct 
+                                        a3_cod cod,
+                                        a3_filial filial,
+                                        a3_nreduz nome, 
+                                        a3_emacorp email, 
+                                        a3_est estado
+                                        from sa3000 s 
+                                        where 
+                                        d_e_l_e_t_ = '' 
+                                        and a3_filial = '101'
+                                        union all
+                                        select 
+                                        rd0_codigo cod,
+                                        rd0_filial filial,
+                                        rd0_nome nome,
+                                        rd0_email email,
+                                        '' estado
+                                        from rd0000 r 
+                                        where 
+                                        rd0_filial = ''
+                                        and d_e_l_e_t_ = ''");
+        $return = $query->fetchAll();
 
-    //     for ($i = 0; $i < count($return); $i++) {
-    //         $cod = $return[$i]['cod'];
-    //         $nome = $return[$i]['nome'];
-    //         $email = $return[$i]['email'];
-    //         $uf = $return[$i]['estado'];
-    //         $token = $this->gerarToken();
+        for ($i = 0; $i < count($return); $i++) {
+            $cod = $return[$i]['cod'];
+            $nome = $return[$i]['nome'];
+            $email = $return[$i]['email'];
+            $uf = $return[$i]['estado'];
+            $token = $this->gerarToken();
 
-    //         $usuario[] = array(
-    //             'token' => $token,
-    //             'cod' => $cod,
-    //             'nome' => trim($nome),
-    //             'email' => trim($email),
-    //             'uf' => $uf,
-    //             'idChat' => '',
-    //             'lastUpdate' => ''
-    //         );
-    //     }
+            $usuario[] = array(
+                'token' => $token,
+                'cod' => $cod,
+                'nome' => trim($nome),
+                'email' => trim($email),
+                'uf' => $uf,
+                'idChat' => '',
+                'lastUpdate' => ''
+            );
+        }
 
-    //     $usuarioArray = $usuario;
-    //     $folderPath = self::folderPathUser;
+        $usuarioArray = $usuario;
+        $folderPath = self::folderPathUser;
 
-    //     if (!file_exists($folderPath)) {
-    //         mkdir($folderPath);
-    //     }
+        if (!file_exists($folderPath)) {
+            mkdir($folderPath);
+        }
 
-    //     $file = @fopen($folderPath . DIRECTORY_SEPARATOR . "usuario.json", "w");
+        $file = @fopen($folderPath . DIRECTORY_SEPARATOR . "usuario.json", "w");
 
-    //     if ($file != false) {
-    //         fwrite($file, json_encode($usuarioArray));
-    //         fclose($file);
-    //     }
+        if ($file != false) {
+            fwrite($file, json_encode($usuarioArray));
+            fclose($file);
+        }
 
-    //     echo "Arquivo gerado!";
-    // }
+        echo "Arquivo gerado!";
+    }
 
     public function getUsuario(string $token, string $idChat)
     {
@@ -306,7 +308,7 @@ class ApiBot
 
             $fileLido = "";
             //Cria a pasta com o nome do Usuário
-            $folderPath = self::folderInfos . DIRECTORY_SEPARATOR . $date1;
+            $folderPath = self::folderInfos . DIRECTORY_SEPARATOR . $nome . DIRECTORY_SEPARATOR . $date1 . "h";
             $fileName = $folderPath . DIRECTORY_SEPARATOR . $nome  . "_.txt";
 
             if (!file_exists($folderPath)) {

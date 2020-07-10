@@ -1,0 +1,40 @@
+<?php
+
+if (strpos($text, "/start") === 0) {
+		//envia a mensagem ao usuário
+      sendMessage("sendMessage", array('chat_id' => $chat_id, "text" => 'Olá, '. $message['from']['first_name'].
+		'! Eu sou um bot que informa o resultado do último sorteio da Mega Sena. Será que você ganhou dessa vez? Para começar, escolha qual loteria você deseja ver o resultado', 'reply_markup' => array(
+        'keyboard' => array(array('Mega-Sena', 'Quina'),array('Lotofácil','Lotomania')),
+        'one_time_keyboard' => true)));
+    } else if ($text === "Mega-Sena") {
+      sendMessage("sendMessage", array('chat_id' => $chat_id, "text" => getResult('megasena', $text)));
+    } else if ($text === "Quina") {
+      sendMessage("sendMessage", array('chat_id' => $chat_id, "text" => getResult('quina', $text)));
+    } else if ($text === "Lotomania") {
+      sendMessage("sendMessage", array('chat_id' => $chat_id, "text" => getResult('lotomania', $text)));
+    } else if ($text === "Lotofácil") {
+      sendMessage("sendMessage", array('chat_id' => $chat_id, "text" => getResult('lotofacil', $text)));
+    } else if ($text === "g1") {
+      sendMessage("sendMessage", array('chat_id' => $chat_id, "text" => 'Olá, '. $message['from']['first_name'].
+		'! Escolha um dos jogos abaixo para ver o resultado diretamente no site do G1.', 
+		'reply_markup' => array('inline_keyboard' => array(
+                                                     //linha 1
+                                                     array(
+                                                         array('text'=>'Mega-Sena','url'=>'http://g1.globo.com/loterias/megasena.html'), //botão 1
+                                                         array('text'=>'Quina','url'=>'http://g1.globo.com/loterias/quina.html')//botão 2
+                                                      ),
+                                                      //linha 2
+                                                     array(
+                                                         array('text'=>'Lotofácil','url'=>'http://g1.globo.com/loterias/lotofacil.html'), //botão 3
+                                                         array('text'=>'Lotomania','url'=>'http://g1.globo.com/loterias/lotomania.html')//botão 4
+                                                      )
+
+                                        )
+                                )));
+    } else {
+      sendMessage("sendMessage", array('chat_id' => $chat_id, "text" => 'Desculpe, mas não entendi essa mensagem. :('));
+    }
+  } else {
+    sendMessage("sendMessage", array('chat_id' => $chat_id, "text" => 'Desculpe, mas só compreendo mensagens em texto'));
+  }
+}
