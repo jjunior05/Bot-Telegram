@@ -250,7 +250,7 @@ class ApiBot
         echo "Arquivo gerado!";
     }
 
-    public function getUsuario(string $token, string $idChat)
+    public function getUsuario($token = "", string $idChat)
     {
         try {
             $retorno = 0;

@@ -15,8 +15,8 @@ class Main
 
     public function main()
     {
-        while (true) {
 
+        while (true) {
             print($this->apiBot->getLastUpdate() + 1);
             $update = $this->apiBot->getUpdates($this->apiBot->getLastUpdate() + 1);
             // ## Get Offset para pegar somente as mensagens não lidas ##
@@ -27,12 +27,25 @@ class Main
                     $chatId = $jsonArray['result'][$i]["message"]["chat"]["id"];
 
                     if (array_key_exists("text", $message)) {
-                        if ($this->apiBot->getUsuario($message['text'], $chatId) === 1) {
-                            $this->processMessage($jsonArray['result'][$i]);
-                        } else {
-                            $this->apiBot->saveUpdate($jsonArray['result'][$i]);
-                            $this->apiBot->sendMessage($chatId, "Informar o Token para validação", "/sendMessage");
+                        $funcao = "text";
+                        $token = $jsonArray['result'][$i]["message"]["text"];
+                    } elseif (array_key_exists("photo", $message)) {
+                        $funcao = "photo";
+                        $token = null;
+                    }
+
+                    if ($this->apiBot->getUsuario($token, $chatId) === 1) {
+                        switch ($funcao) {
+                            case 'text':
+                                $this->processMessage($jsonArray['result'][$i]);
+                                break;
+                            case 'photo':
+                                $this->processPhoto($jsonArray['result'][$i]);
+                                break;
                         }
+                    } else {
+                        $this->apiBot->saveUpdate($jsonArray['result'][$i]);
+                        $this->apiBot->sendMessage($chatId, "Informar o Token para validação", "/sendMessage");
                     }
                 }
             }
@@ -74,6 +87,8 @@ class Main
         $file_id = $result["message"]["photo"][count($result["message"]["photo"]) - 1]["file_id"];
         $this->apiBot->saveDocument($file_id, $nome, $updateId, $data);
         $this->apiBot->sendMessage($chatId, "Imagem recebida!", "/sendMessage");
+
+        $this->apiBot->saveUpdate($result);
     }
 
     // public function gerarUsuario()
