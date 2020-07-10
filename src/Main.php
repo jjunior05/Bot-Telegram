@@ -29,6 +29,7 @@ class Main
             }
         }
     }
+    
     function processMessage($result)
     {
 
