@@ -292,7 +292,7 @@ class ApiBot
             fwrite($file, json_encode($usuario));
             fclose($file);
         } catch (Exception $e) {
-            echo 'Erro ao salvar o ID:',  $e->getMessage(), "\n";
+            echo 'Erro ao salvar o ID:',  $e->getMessage();
         }
     }
 
