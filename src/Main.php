@@ -34,13 +34,13 @@ class Main
                         $token = null;
                     }
 
-                    if ($this->apiBot->getUsuario($token, $chatId) === 1) {
+                    if (!empty($this->apiBot->getUsuario($token, $chatId))) {
                         switch ($funcao) {
                             case 'text':
-                                $this->processMessage($jsonArray['result'][$i]);
+                                $this->processMessage($jsonArray['result'][$i], $this->apiBot->getUsuario($token, $chatId)['uf']);
                                 break;
                             case 'photo':
-                                $this->processPhoto($jsonArray['result'][$i]);
+                                $this->processPhoto($jsonArray['result'][$i], $this->apiBot->getUsuario($token, $chatId)['uf']);
                                 break;
                         }
                     } else {
@@ -52,7 +52,7 @@ class Main
         }
     }
 
-    function processMessage($result)
+    function processMessage($result, $uf)
     {
 
         $nome = $result["message"]["chat"]["first_name"];
@@ -64,19 +64,19 @@ class Main
         if (array_key_exists("text", $result["message"])) {
             $message = $result["message"]['text'];
             switch ($message) {
-                case '/paciente':
-                    $this->apiBot->sendMessage($chatId, "Selecionar o comando 'Enviar Token' ", "/sendMessage");
+                case '/start':
+                    $this->apiBot->sendMessage($chatId, "Olá, " . $nome . "\nPara melhor leitura da imagem, solicitamos que seja enviado além do formulário completo, fotos adicionais com etiquestas da empresa em evidência/foco, garantindo a automação da identificação dos códigos de barras.\n\nInforme o TOKEN recebido, para validar seu acesso e iniciar o chat. ", "/sendMessage");
                     break;
                 default:
-                    $this->apiBot->sendMessage($chatId, "Informação recebida, " . $nome, "/sendMessage");
-                    $this->apiBot->salvarInfos($updateId, $nome, $data, $message);
+                    $this->apiBot->sendMessage($chatId, "Informação recebida.", "/sendMessage");
+                    $this->apiBot->salvarInfos($updateId, $nome, $data, $message, $uf);
 
                     break;
             }
         }
         $this->apiBot->saveUpdate($result);
     }
-    function processPhoto($result)
+    function processPhoto($result, $uf)
     {
 
         $nome = $result["message"]["chat"]["first_name"];
@@ -85,14 +85,14 @@ class Main
         $data = $result["message"]['date'];
 
         $file_id = $result["message"]["photo"][count($result["message"]["photo"]) - 1]["file_id"];
-        $this->apiBot->saveDocument($file_id, $nome, $updateId, $data);
+        $this->apiBot->saveDocument($file_id, $nome, $updateId, $data, $uf);
         $this->apiBot->sendMessage($chatId, "Imagem recebida!", "/sendMessage");
 
         $this->apiBot->saveUpdate($result);
     }
 
-    // public function gerarUsuario()
-    // {
-    //     $this->apiBot->gerarUsuario();
-    // }
+    public function gerarUsuario()
+    {
+        $this->apiBot->gerarUsuario();
+    }
 }

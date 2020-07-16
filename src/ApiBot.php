@@ -118,7 +118,7 @@ class ApiBot
     /**
      * Função para salvar o arquivo recebido no chat
      */
-    public function saveDocument(string $fileId, string $fileName, string $updateId, string $data)
+    public function saveDocument(string $fileId, string $fileName, string $updateId, string $data, $uf)
     {
         try {
             $url = self::url . "/getfile?file_id=" . $fileId;
@@ -130,7 +130,7 @@ class ApiBot
             if (strlen($fileName) > 0) {
 
                 //Cria a pasta com o nome do Usuário
-                $folderPath = self::folderFotos . DIRECTORY_SEPARATOR . $fileName . DIRECTORY_SEPARATOR . $date . "h";
+                $folderPath = self::folderFotos . DIRECTORY_SEPARATOR . $uf . DIRECTORY_SEPARATOR . $fileName . DIRECTORY_SEPARATOR . $date . "h";
                 $fileNome = $folderPath  . DIRECTORY_SEPARATOR . $updateId . "_.jpg";
 
                 if (!file_exists($folderPath)) {
@@ -208,7 +208,7 @@ class ApiBot
                                         rd0_filial filial,
                                         rd0_nome nome,
                                         rd0_email email,
-                                        '' estado
+                                        rd0_uf estado
                                         from rd0000 r 
                                         where 
                                         rd0_filial = ''
@@ -250,10 +250,10 @@ class ApiBot
         echo "Arquivo gerado!";
     }
 
-    public function getUsuario($token = "", string $idChat)
+    public function getUsuario($token = "", string $idChat): array
     {
         try {
-            $retorno = 0;
+
             $array = array();
 
             $file = @fopen(self::folderPathUser . DIRECTORY_SEPARATOR . "usuario.json", "r");
@@ -262,18 +262,25 @@ class ApiBot
                 $fileJson = fread($file, filesize(self::folderPathUser . "/usuario.json"));
 
                 $array = json_decode($fileJson, true);
+                $count = (is_array($array) ? count($array) : 0);
 
-                for ($i = 0; $i < count($array); $i++) {
+                for ($i = 0; $i < $count; $i++) {
                     if ($array[$i]['idChat'] === $idChat) {
-                        $retorno = 1;
+                        return ([
+                            "retorno" => '1',
+                            "uf" => $array[$i]['uf']
+                        ]);
                     } else
                     if ($array[$i]['token'] == $token) {
                         $this->saveIdChat($token, $idChat, $array);
-                        $retorno = 1;
+                        return array([
+                            "retorno" => '1',
+                            "uf" => $array[$i]['uf']
+                        ]);
                     }
                 }
+                return array();
             }
-            return $retorno;
         } catch (Exception $e) {
             echo 'Erro ao obter usuário: ',  $e->getMessage(), "\n";
         }
@@ -301,7 +308,7 @@ class ApiBot
         return $token = md5(uniqid(rand(), true));
     }
 
-    public function salvarInfos(string $updateId, string $nome, string $data, string $msg)
+    public function salvarInfos(string $updateId, string $nome, string $data, string $msg, $uf)
     {
         try {
             $date1 = $this->formatDate($data)["data1"];
@@ -309,7 +316,7 @@ class ApiBot
 
             $fileLido = "";
             //Cria a pasta com o nome do Usuário
-            $folderPath = self::folderInfos . DIRECTORY_SEPARATOR . $nome . DIRECTORY_SEPARATOR . $date1 . "h";
+            $folderPath = self::folderInfos . DIRECTORY_SEPARATOR . $uf . DIRECTORY_SEPARATOR . $nome . DIRECTORY_SEPARATOR . $date1 . "h";
             $fileName = $folderPath . DIRECTORY_SEPARATOR . $nome  . "_.txt";
 
             if (!file_exists($folderPath)) {
